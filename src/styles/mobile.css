@@ -1,0 +1,79 @@
+/* 移动端基础样式重置 */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 移动端适配 */
+.mobile-container {
+  max-width: 750px;
+  margin: 0 auto;
+  background: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* 移动端按钮样式 */
+.mobile-btn {
+  height: 44px;
+  line-height: 44px;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+/* 移动端输入框样式 */
+.mobile-input {
+  height: 44px;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+/* 移动端卡片样式 */
+.mobile-card {
+  margin: 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 移动端导航栏 */
+.mobile-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* 移动端底部安全区域 */
+.mobile-safe-area {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* 1px 边框解决方案 */
+.hairline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  border: 1px solid #e8e8e8;
+  transform: scale(0.5);
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+/* 移动端滚动优化 */
+.mobile-scroll {
+  -webkit-overflow-scrolling: touch;
+  overflow-scrolling: touch;
+}
