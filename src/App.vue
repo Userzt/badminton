@@ -13,7 +13,7 @@
             <router-link to="/">首页</router-link>
           </a-menu-item>
           <a-menu-item key="2">
-            <router-link to="/about">关于</router-link>
+            <router-link to="/about">关13123213于</router-link>
           </a-menu-item>
         </a-menu>
       </a-layout-header>
