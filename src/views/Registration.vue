@@ -47,13 +47,36 @@
         
         <!-- 开始比赛按钮 -->
         <div v-if="store.players.length === 6" style="margin-top: 16px;">
-          <a-button type="primary" size="large" block @click="startMatch" :loading="generating">
+          <a-button 
+            v-if="store.matches.length === 0"
+            type="primary" 
+            size="large" 
+            block 
+            @click="startMatch" 
+            :loading="generating"
+          >
             开始比赛 (6人已满)
+          </a-button>
+          <a-button 
+            v-else
+            type="primary" 
+            size="large" 
+            block 
+            @click="goToScoring"
+          >
+            进入计分页面 (对阵已生成)
           </a-button>
         </div>
         <div v-else-if="store.players.length > 0" style="margin-top: 16px;">
           <a-button block disabled>
             还需要 {{ 6 - store.players.length }} 人才能开始比赛
+          </a-button>
+        </div>
+        
+        <!-- 再来一场按钮 -->
+        <div v-if="store.players.length > 0" style="margin-top: 16px;">
+          <a-button type="default" size="large" block @click="startNewRound" :loading="newRoundLoading">
+            🔄 再来一场
           </a-button>
         </div>
       </a-card>
@@ -75,6 +98,7 @@ export default {
     const selectedAvatar = ref('🏸')
     const adding = ref(false)
     const generating = ref(false)
+    const newRoundLoading = ref(false)
     
     // 可用头像（排除已使用的）
     const availableAvatars = computed(() => {
@@ -82,7 +106,7 @@ export default {
       return store.avatarOptions.filter(avatar => !used.includes(avatar))
     })
     
-    const addPlayer = () => {
+    const addPlayer = async () => {
       if (!newPlayerName.value.trim()) {
         message.warning('请输入选手姓名')
         return
@@ -96,7 +120,7 @@ export default {
       adding.value = true
       
       try {
-        const result = store.addPlayer(newPlayerName.value, selectedAvatar.value)
+        const result = await store.addPlayer(newPlayerName.value, selectedAvatar.value)
         
         if (result.success) {
           message.success('添加成功')
@@ -109,41 +133,119 @@ export default {
         } else {
           message.error(result.message)
         }
+      } catch (error) {
+        message.error('添加失败: ' + error.message)
       } finally {
         adding.value = false
       }
     }
     
-    const removePlayer = (playerId) => {
-      const result = store.removePlayer(playerId)
-      if (result.success) {
-        message.success('删除成功')
-      } else {
-        message.error(result.message)
+    const removePlayer = async (playerId) => {
+      try {
+        const result = await store.removePlayer(playerId)
+        
+        if (result.success) {
+          message.success(result.message || '删除成功')
+        } else if (result.needConfirm) {
+          // 需要用户确认
+          const { Modal } = await import('ant-design-vue')
+          Modal.confirm({
+            title: '确认删除',
+            content: result.message,
+            okText: '确定删除',
+            cancelText: '取消',
+            okType: 'danger',
+            onOk: async () => {
+              try {
+                const confirmResult = await store.removePlayer(playerId, true)
+                if (confirmResult.success) {
+                  message.success(confirmResult.message || '删除成功')
+                } else {
+                  message.error(confirmResult.message)
+                }
+              } catch (error) {
+                message.error('删除失败: ' + error.message)
+              }
+            }
+          })
+        } else {
+          message.error(result.message)
+        }
+      } catch (error) {
+        message.error('删除失败: ' + error.message)
       }
     }
     
-    const startMatch = () => {
+    const startMatch = async () => {
       if (store.players.length !== 6) {
         message.warning('需要6名选手才能开始比赛')
+        return
+      }
+      
+      // 检查是否已经有对阵
+      if (store.matches.length > 0) {
+        message.warning('对阵已经生成，请直接进入计分页面')
         return
       }
       
       generating.value = true
       
       try {
-        store.generateMatches()
-        message.success('比赛对阵生成成功！')
-        setTimeout(() => {
-          router.push('/scoring').then(() => {
-            // 跳转后滚动到顶部
-            window.scrollTo({ top: 0, behavior: 'smooth' })
-          })
-        }, 1000)
+        const result = await store.generateMatches()
+        if (result.success) {
+          message.success('比赛对阵生成成功！')
+          setTimeout(() => {
+            router.push('/scoring').then(() => {
+              // 跳转后滚动到顶部
+              window.scrollTo({ top: 0, behavior: 'smooth' })
+            })
+          }, 1000)
+        } else {
+          message.error(result.message)
+        }
       } catch (error) {
         message.error('生成比赛失败: ' + error.message)
       } finally {
         generating.value = false
+      }
+    }
+    
+    const goToScoring = () => {
+      router.push('/scoring').then(() => {
+        // 跳转后滚动到顶部
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      })
+    }
+    
+    const startNewRound = async () => {
+      try {
+        // 显示确认对话框
+        const { Modal } = await import('ant-design-vue')
+        Modal.confirm({
+          title: '确认再来一场',
+          content: '将创建新的比赛场次，当前的赛程数据将被清空，但选手信息会保留。确定要继续吗？',
+          okText: '确定',
+          cancelText: '取消',
+          okType: 'primary',
+          onOk: async () => {
+            newRoundLoading.value = true
+            
+            try {
+              const result = await store.startNewRound()
+              if (result.success) {
+                message.success(result.message || '新比赛创建成功！')
+              } else {
+                message.error(result.message)
+              }
+            } catch (error) {
+              message.error('创建新比赛失败: ' + error.message)
+            } finally {
+              newRoundLoading.value = false
+            }
+          }
+        })
+      } catch (error) {
+        message.error('操作失败: ' + error.message)
       }
     }
     
@@ -153,10 +255,13 @@ export default {
       selectedAvatar,
       adding,
       generating,
+      newRoundLoading,
       availableAvatars,
       addPlayer,
       removePlayer,
-      startMatch
+      startMatch,
+      goToScoring,
+      startNewRound
     }
   }
 }

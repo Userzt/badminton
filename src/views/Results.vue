@@ -90,24 +90,9 @@
     
     <!-- 底部操作 -->
     <div class="bottom-actions">
-      <a-row :gutter="12">
-        <a-col :span="12">
-          <a-button class="mobile-btn" block @click="regenerateMatches">
-            <ReloadOutlined />
-            重赛
-          </a-button>
-        </a-col>
-        <a-col :span="12">
-          <a-button type="primary" class="mobile-btn" block @click="shareResults">
-            <ShareAltOutlined />
-            分享比赛
-          </a-button>
-        </a-col>
-      </a-row>
-      
       <a-button 
         type="primary" 
-        class="mobile-btn download-btn" 
+        class="mobile-btn" 
         block
         @click="downloadReport"
       >
@@ -120,14 +105,12 @@
 
 <script>
 import { store } from '@/store'
-import { message, Modal } from 'ant-design-vue'
-import { ReloadOutlined, ShareAltOutlined, DownloadOutlined } from '@ant-design/icons-vue'
+import { message } from 'ant-design-vue'
+import { DownloadOutlined } from '@ant-design/icons-vue'
 
 export default {
   name: 'Results',
   components: {
-    ReloadOutlined,
-    ShareAltOutlined,
     DownloadOutlined
   },
   setup() {
@@ -150,33 +133,7 @@ export default {
       return `${medal} ${result.name} - ${result.wins}胜${result.losses}负 (${result.scoreDiff > 0 ? '+' : ''}${result.scoreDiff}分)`
     }
     
-    const regenerateMatches = () => {
-      // 计算当前比赛进度
-      const finishedCount = store.matches.filter(m => m.status === 'finished').length
-      const totalCount = store.matches.length
-      
-      // 显示确认对话框
-      Modal.confirm({
-        title: '确认重新生成比赛？',
-        content: `当前比赛进度：${finishedCount}/${totalCount}场已完成。重新生成比赛将清空所有已录入的比分数据，此操作不可恢复。`,
-        okText: '确认重赛',
-        cancelText: '取消',
-        okType: 'danger',
-        centered: true,
-        width: 400,
-        onOk() {
-          store.generateMatches()
-          message.success('已重新生成比赛对阵！')
-        },
-        onCancel() {
-          message.info('已取消重赛操作')
-        }
-      })
-    }
-    
-    const shareResults = () => {
-      message.success('比赛成绩已分享！')
-    }
+
     
     const downloadReport = () => {
       message.success('成绩海报生成中...')
@@ -187,8 +144,6 @@ export default {
       getRankingClass,
       getRankClass,
       getPlayerStatsHeader,
-      regenerateMatches,
-      shareResults,
       downloadReport
     }
   }
@@ -377,9 +332,5 @@ export default {
   width: calc(100% - 24px);
   max-width: 726px;
   padding: 0 12px;
-}
-
-.download-btn {
-  margin-top: 12px;
 }
 </style>

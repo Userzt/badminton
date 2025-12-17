@@ -17,7 +17,7 @@
     <!-- 比赛列表 -->
     <div class="matches-list">
       <div 
-        v-for="match in store.matches" 
+        v-for="(match, index) in store.matches" 
         :key="match.id"
         class="match-card"
         :class="{ 
@@ -26,7 +26,7 @@
         }"
       >
         <div class="match-header">
-          <div class="match-number">{{ match.id }}</div>
+          <div class="match-number">{{ index + 1 }}</div>
           <div class="match-status">
             <div v-if="match.status === 'finished'" class="status-badge finished">
               <CheckCircleOutlined />
@@ -134,7 +134,6 @@
               placeholder="0-30"
               @change="validateScore1"
             />
-            <div class="score-hint">0-30分</div>
           </div>
           
           <div class="vs-divider">VS</div>
@@ -229,15 +228,23 @@ export default {
       }
     }
     
-    const saveScore = () => {
+    const saveScore = async () => {
       if (selectedMatch.value) {
         // 再次验证比分范围
         const score1 = Math.max(0, Math.min(30, tempScore1.value || 0))
         const score2 = Math.max(0, Math.min(30, tempScore2.value || 0))
         
-        store.updateScore(selectedMatch.value.id, score1, score2)
-        message.success('比分已保存！')
-        scoreModalVisible.value = false
+        try {
+          const result = await store.updateScore(selectedMatch.value.id, score1, score2)
+          if (result.success) {
+            message.success('比分已保存！')
+            scoreModalVisible.value = false
+          } else {
+            message.error(result.message)
+          }
+        } catch (error) {
+          message.error('保存失败: ' + error.message)
+        }
       }
     }
     

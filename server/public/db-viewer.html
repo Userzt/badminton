@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>羽毛球比赛数据库管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #1890ff;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .nav {
+            display: flex;
+            background: #f0f0f0;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .nav-item {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-right: 1px solid #ddd;
+            transition: background 0.3s;
+        }
+        
+        .nav-item:hover {
+            background: #e6f7ff;
+        }
+        
+        .nav-item.active {
+            background: #1890ff;
+            color: white;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        tr:hover {
+            background: #f5f5f5;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            color: #ff4d4f;
+            background: #fff2f0;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ffccc7;
+        }
+        
+        .success {
+            color: #52c41a;
+            background: #f6ffed;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #b7eb8f;
+        }
+        
+        .actions {
+            margin-bottom: 20px;
+        }
+        
+        .btn {
+            background: #1890ff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #40a9ff;
+        }
+        
+        .btn-danger {
+            background: #ff4d4f;
+        }
+        
+        .btn-danger:hover {
+            background: #ff7875;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #1890ff;
+        }
+        
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .match-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .match-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .match-tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .match-tab:hover {
+            background: #f0f0f0;
+        }
+        
+        .match-tab.active {
+            background: #e6f7ff;
+            border-bottom-color: #1890ff;
+            color: #1890ff;
+        }
+        
+        .match-tab-content {
+            display: none;
+        }
+        
+        .match-tab-content.active {
+            display: block;
+        }
+        
+        tr:hover {
+            background: #f5f5f5 !important;
+        }
+        
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin: 0 2px;
+        }
+        
+        .btn-delete {
+            background: #ff4d4f;
+            color: white;
+        }
+        
+        .btn-delete:hover {
+            background: #ff7875;
+        }
+        
+        .btn-view {
+            background: #1890ff;
+            color: white;
+        }
+        
+        .btn-view:hover {
+            background: #40a9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏸 羽毛球比赛数据库管理</h1>
+            <p>实时查看和管理比赛数据</p>
+        </div>
+        
+        <div class="nav">
+            <div class="nav-item active" onclick="showTab('overview')">概览</div>
+            <div class="nav-item" onclick="showTab('matches')">比赛</div>
+            <div class="nav-item" onclick="showTab('players')">选手</div>
+        </div>
+        
+        <div class="content">
+            <!-- 概览页面 -->
+            <div id="overview" class="tab-content">
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="matchCount">-</div>
+                        <div class="stat-label">比赛数量</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="playerCount">-</div>
+                        <div class="stat-label">选手数量</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="gameCount">-</div>
+                        <div class="stat-label">比赛场次</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="finishedCount">-</div>
+                        <div class="stat-label">已完成场次</div>
+                    </div>
+                </div>
+                
+                <div class="actions">
+                    <button class="btn" onclick="refreshData()">刷新数据</button>
+                    <button class="btn" onclick="addTestData()">添加测试数据</button>
+                    <button class="btn btn-danger" onclick="clearData()">清空数据</button>
+                </div>
+                
+                <div id="message"></div>
+            </div>
+            
+            <!-- 其他页面 -->
+            <div id="matches" class="tab-content" style="display: none;">
+                <h2>比赛列表</h2>
+                <div class="table-container">
+                    <table id="matchesTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>标题</th>
+                                <th>日期</th>
+                                <th>时间</th>
+                                <th>地点</th>
+                                <th>组织者</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div id="players" class="tab-content" style="display: none;">
+                <h2>选手列表</h2>
+                <div class="table-container">
+                    <table id="playersTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>姓名</th>
+                                <th>头像</th>
+                                <th>比赛ID</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            
+
+            
+            <!-- 比赛详情页面 -->
+            <div id="matchDetails" class="tab-content" style="display: none;">
+                <div class="match-header">
+                    <button class="btn" onclick="backToMatches()">← 返回比赛列表</button>
+                    <h2 id="matchTitle">比赛详情</h2>
+                </div>
+                
+                <div class="match-tabs">
+                    <div class="match-tab active" onclick="showMatchTab('matchPlayers')">选手</div>
+                    <div class="match-tab" onclick="showMatchTab('matchGames')">对阵</div>
+                    <div class="match-tab" onclick="showMatchTab('matchStats')">统计</div>
+                </div>
+                
+                <!-- 比赛选手 -->
+                <div id="matchPlayers" class="match-tab-content active">
+                    <h3>参赛选手</h3>
+                    <div class="table-container">
+                        <table id="matchPlayersTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>姓名</th>
+                                    <th>头像</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 比赛对阵 -->
+                <div id="matchGames" class="match-tab-content" style="display: none;">
+                    <h3>比赛对阵</h3>
+                    <div class="table-container">
+                        <table id="matchGamesTable">
+                            <thead>
+                                <tr>
+                                    <th>场次</th>
+                                    <th>队伍1</th>
+                                    <th>队伍2</th>
+                                    <th>比分</th>
+                                    <th>状态</th>
+                                    <th>胜者</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 比赛统计 -->
+                <div id="matchStats" class="match-tab-content" style="display: none;">
+                    <h3>选手统计</h3>
+                    <div class="table-container">
+                        <table id="matchStatsTable">
+                            <thead>
+                                <tr>
+                                    <th>排名</th>
+                                    <th>选手</th>
+                                    <th>胜场</th>
+                                    <th>负场</th>
+                                    <th>总得分</th>
+                                    <th>总失分</th>
+                                    <th>净胜分</th>
+                                    <th>参赛场次</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api'
+        
+        // 切换标签页
+        function showTab(tabName) {
+            // 隐藏所有标签页
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none'
+            })
+            
+            // 移除所有活动状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active')
+            })
+            
+            // 显示选中的标签页
+            document.getElementById(tabName).style.display = 'block'
+            event.target.classList.add('active')
+            
+            // 加载对应数据
+            loadTabData(tabName)
+        }
+        
+        // 加载标签页数据
+        async function loadTabData(tabName) {
+            try {
+                switch(tabName) {
+                    case 'overview':
+                        await loadOverview()
+                        break
+                    case 'matches':
+                        await loadMatches()
+                        break
+                    case 'players':
+                        await loadPlayers()
+                        break
+                }
+            } catch (error) {
+                showMessage('加载数据失败: ' + error.message, 'error')
+            }
+        }
+        
+        // 加载概览数据
+        async function loadOverview() {
+            try {
+                console.log('开始加载概览数据...')
+                console.log('API_BASE:', API_BASE)
+                
+                const [matchesRes, playersRes, gamesRes] = await Promise.all([
+                    fetch(`${API_BASE}/matches`),
+                    fetch(`${API_BASE}/matches/1/players`),
+                    fetch(`${API_BASE}/matches/1/games`)
+                ])
+                
+                console.log('API响应状态:', {
+                    matches: matchesRes.status,
+                    players: playersRes.status,
+                    games: gamesRes.status
+                })
+                
+                const matches = await matchesRes.json()
+                const players = await playersRes.json()
+                const games = await gamesRes.json()
+                
+                console.log('API响应数据:', {
+                    matches: matches,
+                    players: players,
+                    games: games
+                })
+                
+                document.getElementById('matchCount').textContent = matches.data?.length || 0
+                document.getElementById('playerCount').textContent = players.data?.length || 0
+                document.getElementById('gameCount').textContent = games.data?.length || 0
+                
+                const finishedGames = games.data?.filter(g => g.status === 'finished').length || 0
+                document.getElementById('finishedCount').textContent = finishedGames
+                
+                console.log('概览数据加载完成')
+                
+            } catch (error) {
+                console.error('加载概览失败:', error)
+                showMessage('加载数据失败: ' + error.message, 'error')
+            }
+        }
+        
+        // 加载比赛数据
+        async function loadMatches() {
+            try {
+                console.log('加载比赛数据...')
+                const response = await fetch(`${API_BASE}/matches`)
+                console.log('比赛数据响应状态:', response.status)
+                
+                const data = await response.json()
+                console.log('比赛数据:', data)
+                
+                const tbody = document.querySelector('#matchesTable tbody')
+                tbody.innerHTML = ''
+                
+                if (data.success && data.data) {
+                    data.data.forEach(match => {
+                        const row = tbody.insertRow()
+                        row.innerHTML = `
+                            <td>${match.id}</td>
+                            <td>${match.title}</td>
+                            <td>${match.date}</td>
+                            <td>${match.time}</td>
+                            <td>${match.location}</td>
+                            <td>${match.organizer}</td>
+                            <td>${match.status}</td>
+                            <td>
+                                <button class="btn btn-small btn-view" onclick="event.stopPropagation(); viewMatchDetails(${match.id}, '${match.title}')">查看</button>
+                                <button class="btn btn-small btn-delete" onclick="event.stopPropagation(); deleteMatch(${match.id}, '${match.title}')">删除</button>
+                            </td>
+                        `
+                        
+                        // 添加行点击效果（除了操作按钮）
+                        const cells = row.querySelectorAll('td:not(:last-child)')
+                        cells.forEach(cell => {
+                            cell.style.cursor = 'pointer'
+                            cell.onclick = () => viewMatchDetails(match.id, match.title)
+                        })
+                        
+                        // 添加悬停效果
+                        row.addEventListener('mouseenter', () => {
+                            row.style.backgroundColor = '#f0f0f0'
+                        })
+                        row.addEventListener('mouseleave', () => {
+                            row.style.backgroundColor = ''
+                        })
+                    })
+                    console.log('比赛数据加载完成，行数:', data.data.length)
+                } else {
+                    console.log('比赛数据格式错误或为空')
+                }
+            } catch (error) {
+                console.error('加载比赛数据失败:', error)
+                showMessage('加载比赛数据失败: ' + error.message, 'error')
+            }
+        }
+        
+        // 加载选手数据
+        async function loadPlayers() {
+            try {
+                console.log('加载选手数据...')
+                const response = await fetch(`${API_BASE}/matches/1/players`)
+                console.log('选手数据响应状态:', response.status)
+                
+                const data = await response.json()
+                console.log('选手数据:', data)
+                
+                const tbody = document.querySelector('#playersTable tbody')
+                tbody.innerHTML = ''
+                
+                if (data.success && data.data) {
+                    data.data.forEach(player => {
+                        const row = tbody.insertRow()
+                        row.innerHTML = `
+                            <td>${player.id}</td>
+                            <td>${player.name}</td>
+                            <td>${player.avatar}</td>
+                            <td>${player.matchId}</td>
+                            <td>${new Date(player.created_at).toLocaleString()}</td>
+                            <td>
+                                <button class="btn btn-small btn-delete" onclick="deletePlayer(${player.matchId}, ${player.id}, '${player.name}')">删除</button>
+                            </td>
+                        `
+                    })
+                    console.log('选手数据加载完成，行数:', data.data.length)
+                } else {
+                    console.log('选手数据格式错误或为空')
+                }
+            } catch (error) {
+                console.error('加载选手数据失败:', error)
+                showMessage('加载选手数据失败: ' + error.message, 'error')
+            }
+        }
+        
+
+        
+        // 刷新数据
+        function refreshData() {
+            const activeTab = document.querySelector('.nav-item.active').textContent.toLowerCase()
+            loadTabData(activeTab)
+            showMessage('数据已刷新', 'success')
+        }
+        
+        // 添加测试数据
+        async function addTestData() {
+            try {
+                const response = await fetch('/seed-data', { method: 'POST' })
+                const result = await response.json()
+                
+                if (result.success) {
+                    showMessage('测试数据添加成功', 'success')
+                    refreshData()
+                } else {
+                    showMessage('添加测试数据失败: ' + result.message, 'error')
+                }
+            } catch (error) {
+                showMessage('添加测试数据失败: ' + error.message, 'error')
+            }
+        }
+        
+        // 清空数据
+        function clearData() {
+            if (confirm('确定要清空所有数据吗？此操作不可恢复！')) {
+                showMessage('清空数据功能待实现', 'error')
+            }
+        }
+        
+        // 显示消息
+        function showMessage(text, type = 'success') {
+            const messageDiv = document.getElementById('message')
+            messageDiv.className = type
+            messageDiv.textContent = text
+            
+            setTimeout(() => {
+                messageDiv.textContent = ''
+                messageDiv.className = ''
+            }, 3000)
+        }
+        
+        // 当前选中的比赛ID
+        let currentMatchId = null
+        
+        // 查看比赛详情
+        function viewMatchDetails(matchId, matchTitle) {
+            console.log('查看比赛详情:', matchId, matchTitle)
+            currentMatchId = matchId
+            
+            // 隐藏所有主标签页
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none'
+            })
+            
+            // 显示比赛详情页面
+            document.getElementById('matchDetails').style.display = 'block'
+            document.getElementById('matchTitle').textContent = matchTitle
+            
+            // 加载比赛详情数据
+            loadMatchDetails(matchId)
+        }
+        
+        // 返回比赛列表
+        function backToMatches() {
+            document.getElementById('matchDetails').style.display = 'none'
+            document.getElementById('matches').style.display = 'block'
+            currentMatchId = null
+        }
+        
+        // 切换比赛详情标签页
+        function showMatchTab(tabName) {
+            // 移除所有活动状态
+            document.querySelectorAll('.match-tab').forEach(tab => {
+                tab.classList.remove('active')
+            })
+            document.querySelectorAll('.match-tab-content').forEach(content => {
+                content.classList.remove('active')
+                content.style.display = 'none'
+            })
+            
+            // 激活选中的标签页
+            event.target.classList.add('active')
+            const content = document.getElementById(tabName)
+            content.classList.add('active')
+            content.style.display = 'block'
+        }
+        
+        // 加载比赛详情数据
+        async function loadMatchDetails(matchId) {
+            try {
+                console.log('加载比赛详情数据:', matchId)
+                
+                // 加载选手数据
+                await loadMatchPlayers(matchId)
+                
+                // 加载对阵数据
+                await loadMatchGames(matchId)
+                
+                // 加载统计数据
+                await loadMatchStatsData(matchId)
+                
+            } catch (error) {
+                console.error('加载比赛详情失败:', error)
+                showMessage('加载比赛详情失败: ' + error.message, 'error')
+            }
+        }
+        
+        // 加载比赛选手数据
+        async function loadMatchPlayers(matchId) {
+            try {
+                const response = await fetch(`${API_BASE}/matches/${matchId}/players`)
+                const data = await response.json()
+                
+                const tbody = document.querySelector('#matchPlayersTable tbody')
+                tbody.innerHTML = ''
+                
+                if (data.success && data.data) {
+                    data.data.forEach(player => {
+                        const row = tbody.insertRow()
+                        row.innerHTML = `
+                            <td>${player.id}</td>
+                            <td>${player.name}</td>
+                            <td>${player.avatar}</td>
+                            <td>${new Date(player.created_at).toLocaleString()}</td>
+                            <td>
+                                <button class="btn btn-small btn-delete" onclick="deletePlayerFromMatch(${matchId}, ${player.id}, '${player.name}')">删除</button>
+                            </td>
+                        `
+                    })
+                }
+            } catch (error) {
+                console.error('加载比赛选手失败:', error)
+            }
+        }
+        
+        // 加载比赛对阵数据
+        async function loadMatchGames(matchId) {
+            try {
+                const response = await fetch(`${API_BASE}/matches/${matchId}/games`)
+                const data = await response.json()
+                
+                const tbody = document.querySelector('#matchGamesTable tbody')
+                tbody.innerHTML = ''
+                
+                if (data.success && data.data) {
+                    data.data.forEach(game => {
+                        const team1 = game.team1?.map(p => p.name).join('-') || '未知'
+                        const team2 = game.team2?.map(p => p.name).join('-') || '未知'
+                        
+                        const row = tbody.insertRow()
+                        row.innerHTML = `
+                            <td>${game.roundName}</td>
+                            <td>${team1}</td>
+                            <td>${team2}</td>
+                            <td>${game.score1}:${game.score2}</td>
+                            <td>${game.status === 'finished' ? '已完成' : '未开始'}</td>
+                            <td>${game.winner ? `队伍${game.winner}` : '-'}</td>
+                        `
+                    })
+                }
+            } catch (error) {
+                console.error('加载比赛对阵失败:', error)
+            }
+        }
+        
+        // 加载比赛统计数据
+        async function loadMatchStatsData(matchId) {
+            try {
+                const response = await fetch(`${API_BASE}/matches/${matchId}/results`)
+                const data = await response.json()
+                
+                const tbody = document.querySelector('#matchStatsTable tbody')
+                tbody.innerHTML = ''
+                
+                if (data.success && data.data) {
+                    data.data.forEach((stat, index) => {
+                        const row = tbody.insertRow()
+                        row.innerHTML = `
+                            <td>${index + 1}</td>
+                            <td>${stat.name} ${stat.avatar}</td>
+                            <td>${stat.wins}</td>
+                            <td>${stat.losses}</td>
+                            <td>${stat.totalScore}</td>
+                            <td>${stat.opponentScore}</td>
+                            <td>${stat.scoreDiff > 0 ? '+' : ''}${stat.scoreDiff}</td>
+                            <td>${stat.gamesPlayed}</td>
+                        `
+                        
+                        // 添加排名样式
+                        if (index === 0) {
+                            row.style.backgroundColor = '#fff7e6'
+                        } else if (index === 1) {
+                            row.style.backgroundColor = '#f6f6f6'
+                        } else if (index === 2) {
+                            row.style.backgroundColor = '#fff2e6'
+                        }
+                    })
+                }
+            } catch (error) {
+                console.error('加载比赛统计失败:', error)
+            }
+        }
+        
+        // 删除比赛
+        async function deleteMatch(matchId, matchTitle) {
+            if (!confirm(`确定要删除比赛 "${matchTitle}" 吗？\n\n删除比赛将同时删除该比赛的所有选手、对阵和统计数据，此操作不可恢复！`)) {
+                return
+            }
+            
+            try {
+                console.log('删除比赛:', matchId, matchTitle)
+                const response = await fetch(`${API_BASE}/matches/${matchId}`, {
+                    method: 'DELETE'
+                })
+                
+                if (response.ok) {
+                    const result = await response.json()
+                    showMessage(`比赛 "${matchTitle}" 删除成功`, 'success')
+                    
+                    // 刷新数据
+                    await loadMatches()
+                    await loadOverview()
+                } else {
+                    const error = await response.json()
+                    showMessage(`删除比赛失败: ${error.error?.message || '未知错误'}`, 'error')
+                }
+            } catch (error) {
+                console.error('删除比赛失败:', error)
+                showMessage(`删除比赛失败: ${error.message}`, 'error')
+            }
+        }
+        
+        // 删除选手
+        async function deletePlayer(matchId, playerId, playerName) {
+            if (!confirm(`确定要删除选手 "${playerName}" 吗？\n\n删除选手将同时删除该选手的所有对阵和统计数据，此操作不可恢复！`)) {
+                return
+            }
+            
+            try {
+                console.log('删除选手:', matchId, playerId, playerName)
+                const response = await fetch(`${API_BASE}/matches/${matchId}/players/${playerId}`, {
+                    method: 'DELETE'
+                })
+                
+                if (response.ok) {
+                    const result = await response.json()
+                    showMessage(`选手 "${playerName}" 删除成功`, 'success')
+                    
+                    // 刷新数据
+                    await loadPlayers()
+                    await loadOverview()
+                } else {
+                    const error = await response.json()
+                    showMessage(`删除选手失败: ${error.error?.message || '未知错误'}`, 'error')
+                }
+            } catch (error) {
+                console.error('删除选手失败:', error)
+                showMessage(`删除选手失败: ${error.message}`, 'error')
+            }
+        }
+        
+        // 从比赛详情页面删除选手
+        async function deletePlayerFromMatch(matchId, playerId, playerName) {
+            if (!confirm(`确定要删除选手 "${playerName}" 吗？\n\n删除选手将同时删除该选手的所有对阵和统计数据，此操作不可恢复！`)) {
+                return
+            }
+            
+            try {
+                console.log('从比赛详情删除选手:', matchId, playerId, playerName)
+                const response = await fetch(`${API_BASE}/matches/${matchId}/players/${playerId}`, {
+                    method: 'DELETE'
+                })
+                
+                if (response.ok) {
+                    const result = await response.json()
+                    showMessage(`选手 "${playerName}" 删除成功`, 'success')
+                    
+                    // 刷新比赛详情数据
+                    await loadMatchDetails(matchId)
+                } else {
+                    const error = await response.json()
+                    showMessage(`删除选手失败: ${error.error?.message || '未知错误'}`, 'error')
+                }
+            } catch (error) {
+                console.error('删除选手失败:', error)
+                showMessage(`删除选手失败: ${error.message}`, 'error')
+            }
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('页面加载完成，开始初始化...')
+            loadOverview()
+        })
+        
+        // 也在window.onload时尝试加载
+        window.onload = function() {
+            console.log('window.onload 触发，尝试加载数据...')
+            setTimeout(() => {
+                loadOverview()
+            }, 1000)
+        }
+    </script>
+</body>
+</html>
