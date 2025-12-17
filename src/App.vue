@@ -24,6 +24,9 @@
                 <a-menu-item key="3">
                   <router-link to="/results">比赛成绩</router-link>
                 </a-menu-item>
+                <a-menu-item key="4">
+                  <router-link to="/ball-fee">球费计算</router-link>
+                </a-menu-item>
               </a-menu>
             </template>
           </a-dropdown>
@@ -39,22 +42,28 @@
     <!-- 移动端底部导航 -->
     <div class="mobile-bottom-nav mobile-safe-area">
       <a-row>
-        <a-col :span="8">
+        <a-col :span="6">
           <div class="nav-item" @click="$router.push('/')" :class="{ active: $route.name === 'Registration' }">
             <UserAddOutlined />
-            <div>报名信息</div>
+            <div>报名</div>
           </div>
         </a-col>
-        <a-col :span="8">
+        <a-col :span="6">
           <div class="nav-item" @click="$router.push('/scoring')" :class="{ active: $route.name === 'Scoring' }">
             <TrophyOutlined />
-            <div>对局计分</div>
+            <div>计分</div>
           </div>
         </a-col>
-        <a-col :span="8">
+        <a-col :span="6">
           <div class="nav-item" @click="$router.push('/results')" :class="{ active: $route.name === 'Results' }">
             <BarChartOutlined />
-            <div>比赛成绩</div>
+            <div>成绩</div>
+          </div>
+        </a-col>
+        <a-col :span="6">
+          <div class="nav-item" @click="$router.push('/ball-fee')" :class="{ active: $route.name === 'BallFeeCalculator' }">
+            <DollarOutlined />
+            <div>球费</div>
           </div>
         </a-col>
       </a-row>
@@ -63,7 +72,7 @@
 </template>
 
 <script>
-import { MenuOutlined, UserAddOutlined, TrophyOutlined, BarChartOutlined } from '@ant-design/icons-vue'
+import { MenuOutlined, UserAddOutlined, TrophyOutlined, BarChartOutlined, DollarOutlined } from '@ant-design/icons-vue'
 import { watch } from 'vue'
 import { useRoute } from 'vue-router'
 
@@ -73,7 +82,8 @@ export default {
     MenuOutlined,
     UserAddOutlined,
     TrophyOutlined,
-    BarChartOutlined
+    BarChartOutlined,
+    DollarOutlined
   },
   setup() {
     const route = useRoute()
