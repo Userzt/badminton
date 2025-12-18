@@ -131,7 +131,10 @@ export default {
       }
     }
     
-    onMounted(() => {
+    onMounted(async () => {
+      // 刷新所有数据并计算结果
+      await store.refresh()
+      await store.calculateResults()
       document.addEventListener('visibilitychange', handleVisibilityChange)
     })
     

@@ -86,11 +86,6 @@
             修改比分
           </a-button>
         </div>
-        
-        <!-- 比赛信息 -->
-        <div class="match-info" v-if="match.status === 'finished'">
-          <span>用时00分00秒 计分员: cy 让分记录</span>
-        </div>
       </div>
     </div>
     
@@ -204,9 +199,11 @@ export default {
       }
     }
     
-    // 页面加载时滚动到顶部
-    onMounted(() => {
+    // 页面加载时滚动到顶部并刷新数据
+    onMounted(async () => {
       window.scrollTo({ top: 0, behavior: 'smooth' })
+      // 刷新所有数据
+      await store.refresh()
       // 添加页面可见性监听
       document.addEventListener('visibilitychange', handleVisibilityChange)
     })

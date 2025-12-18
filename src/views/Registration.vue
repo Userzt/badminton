@@ -107,7 +107,9 @@ export default {
       }
     }
     
-    onMounted(() => {
+    onMounted(async () => {
+      // 页面加载时刷新数据
+      await refreshData()
       document.addEventListener('visibilitychange', handleVisibilityChange)
     })
     
