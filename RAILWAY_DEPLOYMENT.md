@@ -19,19 +19,60 @@ git push origin main
 3. 选择 **Login with GitHub**（推荐）或其他方式登录
 4. 首次登录会获得 $5 免费额度（足够运行小项目）
 
-### 第二步：创建新项目
+### 第二步：准备 GitHub 仓库
+
+⚠️ **重要**：Railway 只支持 GitHub，不支持 GitLab。
+
+#### 方案 A：同步 GitLab 到 GitHub（推荐）
+
+1. **在 GitHub 创建新仓库**
+   - 访问 https://github.com/new
+   - 仓库名：`badminton`（或其他名字）
+   - 设置为 Public 或 Private
+   - **不要**初始化（不勾选 README、.gitignore 等）
+   - 点击 **Create repository**
+
+2. **添加 GitHub 作为第二个远程仓库**
+   
+   在本地项目目录执行：
+   ```bash
+   # 添加 GitHub 远程仓库
+   git remote add github https://github.com/你的用户名/badminton.git
+   
+   # 推送代码到 GitHub
+   git push github main
+   ```
+
+3. **验证推送成功**
+   
+   访问你的 GitHub 仓库，确认代码已经上传。
+
+#### 方案 B：使用 Railway CLI
+
+如果你不想使用 GitHub，可以使用 Railway CLI 直接部署：
+
+```bash
+# 安装 Railway CLI
+npm install -g @railway/cli
+
+# 登录
+railway login
+
+# 在 server 目录初始化
+cd server
+railway init
+
+# 部署
+railway up
+```
+
+### 第三步：在 Railway 创建项目
 
 1. 登录后，点击 **New Project**
 2. 选择 **Deploy from GitHub repo**
 3. 如果是第一次使用，需要授权 Railway 访问你的 GitHub
-4. 如果你的代码在 GitLab，需要先同步到 GitHub，或者选择 **Deploy from GitLab repo**
-
-#### 如果使用 GitLab（推荐）
-
-1. 点击 **Deploy from GitLab repo**
-2. 授权 Railway 访问你的 GitLab 账号
-3. 选择 `ztspace/wenti911` 仓库
-4. Railway 会自动检测到你的项目
+4. 选择你刚才创建的仓库（如 `badminton`）
+5. Railway 会自动检测到你的项目
 
 ### 第三步：配置服务
 

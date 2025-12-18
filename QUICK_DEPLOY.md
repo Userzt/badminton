@@ -1,23 +1,63 @@
 # 🚀 快速部署清单
 
-## 第一步：部署后端到 Railway（5分钟）
+## 第一步：部署后端到 Railway（5-10分钟）
 
-1. **访问** https://railway.app
-2. **登录** 使用 GitHub 或 GitLab 账号
-3. **新建项目** 点击 "New Project" > "Deploy from GitLab repo"
-4. **选择仓库** `ztspace/wenti911`
-5. **配置根目录**
-   - 进入 Settings
-   - Root Directory 设置为：`server`
-6. **添加环境变量**
-   - 进入 Variables 标签
-   - 添加：`NODE_ENV=production`
-   - 添加：`PORT=3002`
-7. **部署** 点击 Deploy，等待完成
-8. **获取 URL**
-   - 进入 Settings > Domains
-   - 点击 "Generate Domain"
+⚠️ **注意**：Railway 只支持 GitHub，不支持 GitLab。你需要先将代码同步到 GitHub。
+
+### 方案 A：同步到 GitHub（推荐）
+
+1. **在 GitHub 创建新仓库**
+   - 访问 https://github.com/new
+   - 仓库名：`badminton` 或其他名字
+   - 设置为 Public 或 Private
+   - 不要初始化（不勾选 README、.gitignore 等）
+
+2. **添加 GitHub 远程仓库**
+   ```bash
+   git remote add github https://github.com/你的用户名/badminton.git
+   git push github main
+   ```
+
+3. **在 Railway 部署**
+   - 访问 https://railway.app
+   - 用 GitHub 账号登录
+   - 点击 "New Project" > "Deploy from GitHub repo"
+   - 选择你刚创建的仓库
+   - 进入 Settings，Root Directory 设置为：`server`
+   - 在 Variables 添加：
+     - `NODE_ENV=production`
+     - `PORT=3002`
+   - 点击 Deploy，等待完成
+   - 在 Settings > Domains 点击 "Generate Domain"
    - **复制这个 URL**（例如：`https://xxx.up.railway.app`）
+
+### 方案 B：使用 Railway CLI（适合高级用户）
+
+1. **安装 Railway CLI**
+   ```bash
+   npm install -g @railway/cli
+   ```
+
+2. **登录 Railway**
+   ```bash
+   railway login
+   ```
+
+3. **初始化项目**
+   ```bash
+   cd server
+   railway init
+   ```
+
+4. **部署**
+   ```bash
+   railway up
+   ```
+
+5. **获取 URL**
+   ```bash
+   railway domain
+   ```
 
 ## 第二步：部署前端到 Netlify（5分钟）
 
