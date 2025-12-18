@@ -30,7 +30,7 @@
           
           <div class="col-player">
             <div class="player-info">
-              <div class="player-avatar">{{ result.avatar }}</div>
+              <img :src="result.avatar" alt="头像" class="player-avatar" />
               <div class="player-name">{{ result.name }}</div>
             </div>
           </div>
@@ -286,12 +286,8 @@ export default {
 .player-avatar {
   width: 32px;
   height: 32px;
-  background: #e6f7ff;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
+  object-fit: cover;
 }
 
 .player-name {

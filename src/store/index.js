@@ -39,8 +39,15 @@ export const store = reactive({
   // 当前比赛进度
   currentMatchIndex: 0,
 
-  // 可选头像列表
-  avatarOptions: ['🏸', '🎯', '⭐', '🔥', '🍜', '🎪', '🎨', '🎵', '⚡', '🌟', '🎲', '🎭', '🎪', '🎨', '🎯', '🏆', '💎', '🌈', '🎊', '🎉'],
+  // 可选头像列表 - 使用public/avatars中的6张图片
+  avatarOptions: [
+    '/avatars/1.jpg',
+    '/avatars/2.png',
+    '/avatars/3.jpg',
+    '/avatars/4.jpg',
+    '/avatars/5.jpg',
+    '/avatars/6.jpg'
+  ],
 
   // 初始化数据
   async init() {
@@ -184,12 +191,12 @@ export const store = reactive({
       console.error('加载选手失败:', error)
       // 如果API失败，使用默认数据
       this.players = [
-        { id: 1, name: '33', avatar: '🏸' },
-        { id: 2, name: '左手', avatar: '🎯' },
-        { id: 3, name: '大哥', avatar: '⭐' },
-        { id: 4, name: '腰子', avatar: '🔥' },
-        { id: 5, name: '网红', avatar: '🍜' },
-        { id: 6, name: 'cy', avatar: '🎪' }
+        { id: 1, name: '33', avatar: '/avatars/1.jpg' },
+        { id: 2, name: '左手', avatar: '/avatars/2.png' },
+        { id: 3, name: '大哥', avatar: '/avatars/3.jpg' },
+        { id: 4, name: '腰子', avatar: '/avatars/4.jpg' },
+        { id: 5, name: '网红', avatar: '/avatars/5.jpg' },
+        { id: 6, name: 'cy', avatar: '/avatars/6.jpg' }
       ]
     }
   },
@@ -214,7 +221,7 @@ export const store = reactive({
   },
 
   // 添加参赛选手
-  async addPlayer(name, avatar) {
+  async addPlayer(name) {
     if (this.players.length >= 6) {
       return { success: false, message: '参赛人数已满（最多6人）' }
     }
@@ -230,7 +237,7 @@ export const store = reactive({
     try {
       const playerData = {
         name: name.trim(),
-        avatar: avatar || this.getRandomAvatar()
+        avatar: this.getRandomAvatar()
       }
 
       const response = await apiService.addPlayer(this.currentMatchId, playerData)

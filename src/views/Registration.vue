@@ -22,11 +22,6 @@
             style="flex: 1;"
             @pressEnter="addPlayer"
           />
-          <a-select v-model:value="selectedAvatar" style="width: 80px;">
-            <a-select-option v-for="avatar in availableAvatars" :key="avatar" :value="avatar">
-              {{ avatar }}
-            </a-select-option>
-          </a-select>
           <a-button type="primary" @click="addPlayer" :loading="adding">
             添加
           </a-button>
@@ -40,8 +35,8 @@
         <div v-for="(player, index) in store.players" :key="player.id" 
              style="display: flex; align-items: center; padding: 8px; border: 1px solid #f0f0f0; margin-bottom: 8px; border-radius: 4px;">
           <span style="margin-right: 12px; font-weight: bold;">{{ index + 1 }}.</span>
-          <span style="margin-right: 12px; font-size: 20px;">{{ player.avatar }}</span>
-          <span style="flex: 1;">{{ player.name }}</span>
+          <img :src="player.avatar" alt="头像" style="width: 32px; height: 32px; border-radius: 50%; margin-right: 12px; object-fit: cover;" />
+          <span style="flex: 1; font-weight: bold;">{{ player.name }}</span>
           <a-button size="small" @click="removePlayer(player.id)" danger>删除</a-button>
         </div>
         
@@ -95,7 +90,6 @@ export default {
   setup() {
     const router = useRouter()
     const newPlayerName = ref('')
-    const selectedAvatar = ref('🏸')
     const adding = ref(false)
     const generating = ref(false)
     const newRoundLoading = ref(false)
@@ -121,11 +115,7 @@ export default {
       document.removeEventListener('visibilitychange', handleVisibilityChange)
     })
     
-    // 可用头像（排除已使用的）
-    const availableAvatars = computed(() => {
-      const used = store.players.map(p => p.avatar)
-      return store.avatarOptions.filter(avatar => !used.includes(avatar))
-    })
+
     
     const addPlayer = async () => {
       if (!newPlayerName.value.trim()) {
@@ -141,16 +131,11 @@ export default {
       adding.value = true
       
       try {
-        const result = await store.addPlayer(newPlayerName.value, selectedAvatar.value)
+        const result = await store.addPlayer(newPlayerName.value)
         
         if (result.success) {
           message.success('添加成功')
           newPlayerName.value = ''
-          // 选择下一个可用头像
-          const nextAvatar = availableAvatars.value[0]
-          if (nextAvatar) {
-            selectedAvatar.value = nextAvatar
-          }
         } else {
           message.error(result.message)
         }
@@ -273,11 +258,9 @@ export default {
     return {
       store,
       newPlayerName,
-      selectedAvatar,
       adding,
       generating,
       newRoundLoading,
-      availableAvatars,
       addPlayer,
       removePlayer,
       startMatch,

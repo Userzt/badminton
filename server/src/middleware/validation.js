@@ -13,7 +13,7 @@ const matchSchema = Joi.object({
 // 选手验证规则
 const playerSchema = Joi.object({
   name: Joi.string().min(1).max(100).required(),
-  avatar: Joi.string().min(1).max(10).required()
+  avatar: Joi.string().min(1).max(255).required()
 })
 
 // 验证中间件工厂函数

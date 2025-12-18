@@ -4,7 +4,7 @@
     <div class="mobile-header">
       <a-row align="middle" style="height: 50px; padding: 0 16px">
         <a-col flex="auto">
-          <div class="logo-mobile">Vue 3 + Ant Design</div>
+          <div class="logo-mobile">文体911SVIP包间</div>
         </a-col>
         <a-col>
           <a-dropdown>
@@ -108,7 +108,7 @@ export default {
 .logo-mobile {
   font-size: 18px;
   font-weight: bold;
-  color: #1890ff;
+  color: #ff69b4;
 }
 
 .mobile-content {

@@ -552,7 +552,7 @@
                         row.innerHTML = `
                             <td>${player.id}</td>
                             <td>${player.name}</td>
-                            <td>${player.avatar}</td>
+                            <td><img src="${player.avatar}" alt="头像" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" /></td>
                             <td>${player.matchId}</td>
                             <td>${new Date(player.created_at).toLocaleString()}</td>
                             <td>
@@ -696,7 +696,7 @@
                         row.innerHTML = `
                             <td>${player.id}</td>
                             <td>${player.name}</td>
-                            <td>${player.avatar}</td>
+                            <td><img src="${player.avatar}" alt="头像" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover;" /></td>
                             <td>${new Date(player.created_at).toLocaleString()}</td>
                             <td>
                                 <button class="btn btn-small btn-delete" onclick="deletePlayerFromMatch(${matchId}, ${player.id}, '${player.name}')">删除</button>
@@ -753,7 +753,7 @@
                         const row = tbody.insertRow()
                         row.innerHTML = `
                             <td>${index + 1}</td>
-                            <td>${stat.name} ${stat.avatar}</td>
+                            <td>${stat.name} <img src="${stat.avatar}" alt="头像" style="width: 20px; height: 20px; border-radius: 50%; object-fit: cover; margin-left: 8px;" /></td>
                             <td>${stat.wins}</td>
                             <td>${stat.losses}</td>
                             <td>${stat.totalScore}</td>

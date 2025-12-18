@@ -43,7 +43,7 @@
           <!-- 队伍1 -->
           <div class="team team-left">
             <div class="player" v-for="player in match.team1" :key="player.id">
-              <div class="player-avatar">{{ player.avatar }}</div>
+              <img :src="player.avatar" alt="头像" class="player-avatar" />
               <div class="player-name">{{ player.name }}</div>
             </div>
           </div>
@@ -62,7 +62,7 @@
           <!-- 队伍2 -->
           <div class="team team-right">
             <div class="player" v-for="player in match.team2" :key="player.id">
-              <div class="player-avatar">{{ player.avatar }}</div>
+              <img :src="player.avatar" alt="头像" class="player-avatar" />
               <div class="player-name">{{ player.name }}</div>
             </div>
           </div>
@@ -119,7 +119,7 @@
             <div class="team-info">
               <div class="team-players">
                 <div v-for="player in selectedMatch.team1" :key="player.id" class="player-mini">
-                  <span class="player-avatar-mini">{{ player.avatar }}</span>
+                  <img :src="player.avatar" alt="头像" class="player-avatar-mini" />
                   <span>{{ player.name }}</span>
                 </div>
               </div>
@@ -142,7 +142,7 @@
             <div class="team-info">
               <div class="team-players">
                 <div v-for="player in selectedMatch.team2" :key="player.id" class="player-mini">
-                  <span class="player-avatar-mini">{{ player.avatar }}</span>
+                  <img :src="player.avatar" alt="头像" class="player-avatar-mini" />
                   <span>{{ player.name }}</span>
                 </div>
               </div>
@@ -412,12 +412,8 @@ export default {
 .player-avatar {
   width: 32px;
   height: 32px;
-  background: #e6f7ff;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
+  object-fit: cover;
 }
 
 .player-name {
@@ -509,12 +505,8 @@ export default {
 .player-avatar-mini {
   width: 20px;
   height: 20px;
-  background: #e6f7ff;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
+  object-fit: cover;
 }
 
 .score-input {

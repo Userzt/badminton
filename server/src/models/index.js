@@ -63,7 +63,7 @@ const Player = sequelize.define('Player', {
     allowNull: false
   },
   avatar: {
-    type: DataTypes.STRING(10),
+    type: DataTypes.STRING(255),
     allowNull: false
   }
 }, {
