@@ -34,12 +34,24 @@ app.use(helmet({
 app.use(compression())
 app.use(morgan('combined'))
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:3003',
-    process.env.CORS_ORIGIN
-  ].filter(Boolean),
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:3003',
+      'https://ztdea.asia',
+      process.env.CORS_ORIGIN
+    ].filter(Boolean)
+
+    // 允许没有 origin 的请求（如 Postman、服务器端请求）
+    if (!origin) return callback(null, true)
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true)
+    } else {
+      callback(null, true) // 临时允许所有来源，方便调试
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
