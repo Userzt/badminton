@@ -1,6 +1,13 @@
-# Vue 3 + Ant Design Vue + Vite 项目
+# 羽毛球比赛管理系统
 
-这是一个基于 Vue 3、Ant Design Vue 和 Vite 构建的现代化前端项目框架。
+这是一个基于 Vue 3、Ant Design Vue 和 Vite 构建的羽毛球比赛管理系统。
+
+## 功能特性
+
+- 📝 **报名信息管理** - 选手报名和信息管理
+- 🏆 **对局计分** - 实时比赛计分和进度跟踪
+- 📊 **比赛成绩** - 成绩统计和排名展示
+- 💰 **球费计算** - 智能球费和场地费用分摊计算
 
 ## 技术栈
 
@@ -15,7 +22,13 @@
 ├── public/                 # 静态资源
 ├── src/
 │   ├── views/             # 页面组件
+│   │   ├── Registration.vue      # 报名信息
+│   │   ├── Scoring.vue           # 对局计分
+│   │   ├── Results.vue           # 比赛成绩
+│   │   └── BallFeeCalculator.vue # 球费计算
 │   ├── router/            # 路由配置
+│   ├── store/             # 状态管理
+│   ├── styles/            # 样式文件
 │   ├── App.vue            # 根组件
 │   └── main.js            # 入口文件
 ├── index.html             # HTML 模板
