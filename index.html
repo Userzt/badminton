@@ -10,7 +10,18 @@
     <title>Vue 3 + Ant Design Vue + Vite</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column;">
+        <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #1890ff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="margin-top: 20px; color: #666; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">加载中...</p>
+      </div>
+    </div>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

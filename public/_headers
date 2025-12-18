@@ -1,0 +1,15 @@
+# 缓存静态资源
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# 缓存字体
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+
+# HTML 不缓存
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# API 请求不缓存
+/api/*
+  Cache-Control: no-cache
