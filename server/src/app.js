@@ -49,6 +49,7 @@ app.use(express.urlencoded({ extended: true }))
 
 // 静态文件服务
 app.use('/static', express.static(path.join(__dirname, '../public')))
+app.use(express.static(path.join(__dirname, '../public')))
 
 // 数据库管理界面
 app.get('/db-viewer', (req, res) => {
@@ -84,13 +85,13 @@ async function startServer() {
     // 测试数据库连接
     await sequelize.authenticate()
     console.log('Database connection established successfully.')
-    
+
     // 同步数据库模型（开发环境）
     if (process.env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: true })
       console.log('Database models synchronized.')
     }
-    
+
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`)
       console.log(`Environment: ${process.env.NODE_ENV}`)
