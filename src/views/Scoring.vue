@@ -157,7 +157,6 @@
               placeholder="0-30"
               @change="validateScore2"
             />
-            <div class="score-hint">0-30分</div>
           </div>
         </div>
         
@@ -227,8 +226,8 @@ export default {
     
     const showScoreModal = (match) => {
       selectedMatch.value = match
-      tempScore1.value = match.score1
-      tempScore2.value = match.score2
+      tempScore1.value = match.score1 === 0 ? null : match.score1
+      tempScore2.value = match.score2 === 0 ? null : match.score2
       scoreModalVisible.value = true
     }
     
@@ -474,7 +473,7 @@ export default {
 
 .score-input-section {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 20px;
   margin-bottom: 24px;
 }
@@ -482,6 +481,10 @@ export default {
 .team-score {
   flex: 1;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100px;
 }
 
 .team-info {
