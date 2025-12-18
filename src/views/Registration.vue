@@ -85,7 +85,7 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { store } from '@/store'
 import { message } from 'ant-design-vue'
@@ -99,6 +99,22 @@ export default {
     const adding = ref(false)
     const generating = ref(false)
     const newRoundLoading = ref(false)
+    
+    // 刷新数据（Registration 页面不需要刷新，因为数据在本地 store）
+    // 但添加监听以保持一致性
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // 可以在这里添加从服务器同步数据的逻辑
+      }
+    }
+    
+    onMounted(() => {
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+    })
+    
+    onUnmounted(() => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    })
     
     // 可用头像（排除已使用的）
     const availableAvatars = computed(() => {

@@ -104,6 +104,7 @@
 </template>
 
 <script>
+import { onMounted, onUnmounted } from 'vue'
 import { store } from '@/store'
 import { message } from 'ant-design-vue'
 import { DownloadOutlined } from '@ant-design/icons-vue'
@@ -114,6 +115,26 @@ export default {
     DownloadOutlined
   },
   setup() {
+    // 刷新数据
+    const refreshData = () => {
+      store.calculateResults()
+    }
+    
+    // 监听页面可见性变化
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        refreshData()
+      }
+    }
+    
+    onMounted(() => {
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+    })
+    
+    onUnmounted(() => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    })
+    
     const getRankingClass = (index) => {
       if (index === 0) return 'first-place'
       if (index === 1) return 'second-place'

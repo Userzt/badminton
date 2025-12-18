@@ -171,7 +171,7 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { store } from '@/store'
 import { message } from 'ant-design-vue'
 import { CheckCircleOutlined, ClockCircleOutlined } from '@ant-design/icons-vue'
@@ -188,9 +188,30 @@ export default {
     const tempScore1 = ref(0)
     const tempScore2 = ref(0)
     
+    // 刷新数据
+    const refreshData = () => {
+      // 触发 store 重新计算结果
+      store.calculateResults()
+    }
+    
+    // 监听页面可见性变化
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // 页面变为可见时刷新数据
+        refreshData()
+      }
+    }
+    
     // 页面加载时滚动到顶部
     onMounted(() => {
       window.scrollTo({ top: 0, behavior: 'smooth' })
+      // 添加页面可见性监听
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+    })
+    
+    // 组件卸载时移除监听
+    onUnmounted(() => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
     })
     
     const finishedMatches = computed(() => {
