@@ -116,13 +116,17 @@ export default {
   },
   setup() {
     // 刷新数据
-    const refreshData = () => {
+    const refreshData = async () => {
+      // 从服务器重新加载数据
+      await store.refresh()
+      // 重新计算结果
       store.calculateResults()
     }
     
     // 监听页面可见性变化
     const handleVisibilityChange = () => {
       if (!document.hidden) {
+        console.log('页面可见，刷新数据...')
         refreshData()
       }
     }

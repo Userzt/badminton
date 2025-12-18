@@ -189,8 +189,10 @@ export default {
     const tempScore2 = ref(0)
     
     // 刷新数据
-    const refreshData = () => {
-      // 触发 store 重新计算结果
+    const refreshData = async () => {
+      // 从服务器重新加载数据
+      await store.refresh()
+      // 重新计算结果
       store.calculateResults()
     }
     
@@ -198,6 +200,7 @@ export default {
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         // 页面变为可见时刷新数据
+        console.log('页面可见，刷新数据...')
         refreshData()
       }
     }

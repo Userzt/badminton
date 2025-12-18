@@ -8,7 +8,7 @@ function getCurrentTimeString() {
   const day = now.getDate()
   const weekdays = ['日', '一', '二', '三', '四', '五', '六']
   const weekday = weekdays[now.getDay()]
-  
+
   return `${month}月${day}日 周${weekday} (2小时21:00-23:00)`
 }
 
@@ -16,10 +16,10 @@ function getCurrentTimeString() {
 export const store = reactive({
   // 当前比赛ID
   currentMatchId: null,
-  
+
   // 参赛选手
   players: [],
-  
+
   // 比赛信息
   matchInfo: {
     title: '6人多人轮转赛',
@@ -29,19 +29,19 @@ export const store = reactive({
     organizer: 'cy',
     type: '多人轮转赛'
   },
-  
+
   // 比赛场次
   matches: [],
-  
+
   // 比赛结果
   results: [],
-  
+
   // 当前比赛进度
   currentMatchIndex: 0,
-  
+
   // 可选头像列表
   avatarOptions: ['🏸', '🎯', '⭐', '🔥', '🍜', '🎪', '🎨', '🎵', '⚡', '🌟', '🎲', '🎭', '🎪', '🎨', '🎯', '🏆', '💎', '🌈', '🎊', '🎉'],
-  
+
   // 初始化数据
   async init() {
     try {
@@ -54,7 +54,22 @@ export const store = reactive({
       console.error('初始化失败:', error)
     }
   },
-  
+
+  // 刷新所有数据（用于切换标签页时）
+  async refresh() {
+    try {
+      if (this.currentMatchId) {
+        await Promise.all([
+          this.loadPlayers(),
+          this.loadMatches()
+        ])
+        console.log('数据已刷新')
+      }
+    } catch (error) {
+      console.error('刷新数据失败:', error)
+    }
+  },
+
   // 加载当前比赛
   async loadCurrentMatch() {
     try {
@@ -81,7 +96,7 @@ export const store = reactive({
       await this.createNewMatch()
     }
   },
-  
+
   // 创建新比赛
   async createNewMatch() {
     try {
@@ -93,7 +108,7 @@ export const store = reactive({
         organizer: 'cy',
         type: '多人轮转赛'
       }
-      
+
       const response = await apiService.createMatch(matchData)
       if (response.success) {
         this.currentMatchId = response.data.id
@@ -113,7 +128,7 @@ export const store = reactive({
     try {
       // 1. 保存当前选手信息
       const currentPlayers = [...this.players]
-      
+
       // 2. 直接创建新比赛（不清空当前比赛数据，保留历史记录）
       const matchData = {
         title: '6人多人轮转赛',
@@ -123,16 +138,16 @@ export const store = reactive({
         organizer: 'cy',
         type: '多人轮转赛'
       }
-      
+
       const response = await apiService.createMatch(matchData)
       if (!response.success) {
         return { success: false, message: '创建新比赛失败' }
       }
-      
+
       // 3. 更新当前比赛信息
       this.currentMatchId = response.data.id
       this.matchInfo = matchData
-      
+
       // 4. 将选手添加到新比赛中
       for (const player of currentPlayers) {
         await apiService.addPlayer(this.currentMatchId, {
@@ -140,26 +155,26 @@ export const store = reactive({
           avatar: player.avatar
         })
       }
-      
+
       // 5. 重新加载数据
       await this.loadPlayers()
       await this.loadMatches()
-      
+
       return { success: true, message: '新比赛创建成功，选手已保留，历史数据已保存' }
-      
+
     } catch (error) {
       console.error('再来一场失败:', error)
       return { success: false, message: '网络错误，创建失败' }
     }
   },
-  
+
   // 加载选手数据
   async loadPlayers() {
     if (!this.currentMatchId) {
       console.warn('没有当前比赛ID，无法加载选手')
       return
     }
-    
+
     try {
       const response = await apiService.getPlayers(this.currentMatchId)
       if (response.success) {
@@ -178,14 +193,14 @@ export const store = reactive({
       ]
     }
   },
-  
+
   // 加载比赛数据
   async loadMatches() {
     if (!this.currentMatchId) {
       console.warn('没有当前比赛ID，无法加载比赛数据')
       return
     }
-    
+
     try {
       const response = await apiService.getGames(this.currentMatchId)
       if (response.success) {
@@ -197,27 +212,27 @@ export const store = reactive({
       this.matches = []
     }
   },
-  
+
   // 添加参赛选手
   async addPlayer(name, avatar) {
     if (this.players.length >= 6) {
       return { success: false, message: '参赛人数已满（最多6人）' }
     }
-    
+
     if (!name.trim()) {
       return { success: false, message: '请输入选手姓名' }
     }
-    
+
     if (this.players.some(p => p.name === name.trim())) {
       return { success: false, message: '选手姓名已存在' }
     }
-    
+
     try {
       const playerData = {
         name: name.trim(),
         avatar: avatar || this.getRandomAvatar()
       }
-      
+
       const response = await apiService.addPlayer(this.currentMatchId, playerData)
       if (response.success) {
         await this.loadPlayers() // 重新加载选手列表
@@ -230,15 +245,15 @@ export const store = reactive({
       return { success: false, message: '网络错误，添加失败' }
     }
   },
-  
+
   // 删除参赛选手
   async removePlayer(playerId, confirmed = false) {
     // 如果已经生成了赛程，需要用户确认
     if (this.matches.length > 0 && !confirmed) {
-      return { 
-        success: false, 
+      return {
+        success: false,
         needConfirm: true,
-        message: '已生成赛程，删除选手将清空所有赛程数据，确定要删除吗？' 
+        message: '已生成赛程，删除选手将清空所有赛程数据，确定要删除吗？'
       }
     }
 
@@ -265,23 +280,23 @@ export const store = reactive({
       return { success: false, message: '网络错误，删除失败' }
     }
   },
-  
+
   // 编辑参赛选手
   async editPlayer(playerId, name, avatar) {
     if (!name.trim()) {
       return { success: false, message: '请输入选手姓名' }
     }
-    
+
     if (this.players.some(p => p.name === name.trim() && p.id !== playerId)) {
       return { success: false, message: '选手姓名已存在' }
     }
-    
+
     try {
       const playerData = {
         name: name.trim(),
         avatar: avatar
       }
-      
+
       const response = await apiService.updatePlayer(this.currentMatchId, playerId, playerData)
       if (response.success) {
         await this.loadPlayers() // 重新加载选手列表
@@ -294,26 +309,26 @@ export const store = reactive({
       return { success: false, message: '网络错误，修改失败' }
     }
   },
-  
+
   // 获取随机头像
   getRandomAvatar() {
     const usedAvatars = this.players.map(p => p.avatar)
     const availableAvatars = this.avatarOptions.filter(avatar => !usedAvatars.includes(avatar))
-    
+
     if (availableAvatars.length > 0) {
       return availableAvatars[Math.floor(Math.random() * availableAvatars.length)]
     }
-    
+
     return this.avatarOptions[Math.floor(Math.random() * this.avatarOptions.length)]
   },
-  
+
   // 生成比赛对阵 - 调用后端API
   async generateMatches() {
     if (this.players.length !== 6) {
       console.error('需要6名选手才能生成比赛')
       return { success: false, message: '需要6名选手才能生成比赛' }
     }
-    
+
     try {
       const response = await apiService.generateGames(this.currentMatchId)
       if (response.success) {
@@ -328,7 +343,7 @@ export const store = reactive({
       return { success: false, message: '网络错误，生成失败' }
     }
   },
-  
+
   // 更新比分
   async updateScore(matchId, team1Score, team2Score) {
     try {
@@ -336,7 +351,7 @@ export const store = reactive({
         score1: team1Score,
         score2: team2Score
       }
-      
+
       const response = await apiService.updateGameScore(this.currentMatchId, matchId, scoreData)
       if (response.success) {
         await this.loadMatches() // 重新加载比赛数据
@@ -349,7 +364,7 @@ export const store = reactive({
       return { success: false, message: '网络错误，更新失败' }
     }
   },
-  
+
   // 完成比赛（保留此方法以兼容现有代码）
   finishMatch(matchId) {
     const match = this.matches.find(m => m.id === matchId)
@@ -358,7 +373,7 @@ export const store = reactive({
       this.calculateResults()
     }
   },
-  
+
   // 计算比赛结果 - 调用后端API
   async calculateResults() {
     try {

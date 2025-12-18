@@ -100,11 +100,16 @@ export default {
     const generating = ref(false)
     const newRoundLoading = ref(false)
     
-    // 刷新数据（Registration 页面不需要刷新，因为数据在本地 store）
-    // 但添加监听以保持一致性
+    // 刷新数据
+    const refreshData = async () => {
+      // 从服务器重新加载选手数据
+      await store.refresh()
+    }
+    
     const handleVisibilityChange = () => {
       if (!document.hidden) {
-        // 可以在这里添加从服务器同步数据的逻辑
+        console.log('页面可见，刷新数据...')
+        refreshData()
       }
     }
     
