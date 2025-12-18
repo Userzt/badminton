@@ -125,7 +125,7 @@
               :max="30"
               :precision="0"
               size="large"
-              class="score-input"
+              class="score-input score-input-left"
               placeholder="0-30"
               @change="validateScore1"
             />
@@ -477,28 +477,40 @@ export default {
 
 .team-score {
   flex: 1;
-  text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   min-height: 100px;
+  align-items: center;
+}
+
+.team-score:first-child .score-input {
+  align-self: flex-end;
+}
+
+.team-score:last-child .score-input {
+  align-self: flex-start;
 }
 
 .team-info {
   margin-bottom: 12px;
+  display: flex;
+  justify-content: center;
+  width: 100%;
 }
 
 .team-players {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  align-items: flex-start;
 }
 
 .player-mini {
   display: flex;
   align-items: center;
   gap: 6px;
-  justify-content: center;
+  justify-content: flex-start;
   font-size: 12px;
 }
 
@@ -513,6 +525,10 @@ export default {
   width: 80px;
 }
 
+.score-input-left :deep(.ant-input-number-input) {
+  text-align: right;
+}
+
 .score-hint {
   font-size: 12px;
   color: #999;
@@ -523,7 +539,7 @@ export default {
 .vs-divider {
   font-size: 16px;
   font-weight: bold;
-  color: #999;
+  color: #ff4d4f;
 }
 
 .modal-actions {
