@@ -33,6 +33,9 @@ export const store = reactive({
   // 比赛场次
   matches: [],
 
+  // 比赛统计信息
+  matchStats: null,
+
   // 比赛结果
   results: [],
 
@@ -339,6 +342,10 @@ export const store = reactive({
     try {
       const response = await apiService.generateGames(this.currentMatchId)
       if (response.success) {
+        // 保存统计信息
+        if (response.data && response.data.stats && response.data.stats.matchStats) {
+          this.matchStats = response.data.stats.matchStats
+        }
         await this.loadMatches() // 重新加载比赛数据
         this.currentMatchIndex = 0
         return { success: true, message: '比赛对阵生成成功' }

@@ -7,6 +7,13 @@
       @cancel="handlePasswordCancel"
     />
     
+    <!-- 对局详情模态框 -->
+    <MatchStatsModal
+      v-model:open="showStatsModal"
+      :stats="store.matchStats"
+      :players="store.players"
+    />
+    
     <!-- 测试基本显示 -->
     <div style="padding: 20px; background: white; margin: 10px; border-radius: 8px;">
       <h2>羽毛球比赛报名</h2>
@@ -81,6 +88,13 @@
             🔄 再来一场
           </a-button>
         </div>
+        
+        <!-- 对局详情按钮 -->
+        <div v-if="store.matches.length > 0" style="margin-top: 16px;">
+          <a-button type="default" size="large" block @click="showStatsModal = true">
+            📊 对局详情
+          </a-button>
+        </div>
       </a-card>
     </div>
   </div>
@@ -92,11 +106,13 @@ import { useRouter } from 'vue-router'
 import { store } from '@/store'
 import { message } from 'ant-design-vue'
 import PasswordModal from '@/components/PasswordModal.vue'
+import MatchStatsModal from '@/components/MatchStatsModal.vue'
 
 export default {
   name: 'Registration',
   components: {
-    PasswordModal
+    PasswordModal,
+    MatchStatsModal
   },
   setup() {
     const router = useRouter()
@@ -105,6 +121,7 @@ export default {
     const generating = ref(false)
     const newRoundLoading = ref(false)
     const showPasswordModal = ref(false)
+    const showStatsModal = ref(false)
     const pendingAction = ref(null) // 存储待执行的操作
     
     // 刷新数据
@@ -318,6 +335,7 @@ export default {
       generating,
       newRoundLoading,
       showPasswordModal,
+      showStatsModal,
       addPlayer,
       removePlayer,
       startMatch,

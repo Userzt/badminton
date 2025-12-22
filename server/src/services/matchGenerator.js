@@ -40,9 +40,10 @@ function generateMatchSchedule(players) {
 
   // 统计并打印组队次数
   console.log('开始统计组队次数...')
+  let matchStats = null
   if (bestMatches.length > 0) {
     console.log(`成功生成 ${bestMatches.length} 场对局`)
-    printTeammateStats(bestMatches, players)
+    matchStats = printTeammateStats(bestMatches, players)
   } else {
     console.log('未能生成对局')
   }
@@ -52,7 +53,8 @@ function generateMatchSchedule(players) {
     matches: bestMatches,
     stats: {
       totalGames: bestMatches.length,
-      score: bestScore
+      score: bestScore,
+      matchStats // 添加详细统计信息
     }
   }
 }
@@ -483,6 +485,13 @@ function printTeammateStats(matches, players) {
     })
   })
   console.log('\n==================================\n')
+
+  // 返回统计数据供 API 使用
+  return {
+    playerGameCount,
+    playerMaxConsecutive,
+    teammateCount
+  }
 }
 
 module.exports = {
