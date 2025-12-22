@@ -46,10 +46,15 @@ router.post('/:matchId/generate-games', async (req, res, next) => {
 
     // 生成新的比赛对阵
     console.log('准备生成比赛对阵，选手数量:', players.length)
+    console.log('选手列表:', players.map(p => ({ id: p.id, name: p.name })))
+
     const schedule = generateMatchSchedule(players)
+
     console.log('对阵生成完成，结果:', schedule.success)
+    console.log('生成的对局数量:', schedule.matches ? schedule.matches.length : 0)
 
     if (!schedule.success) {
+      console.error('生成对阵失败:', schedule.message)
       return res.status(400).json({
         success: false,
         error: { message: schedule.message || '生成比赛对阵失败' }

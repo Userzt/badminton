@@ -1,7 +1,11 @@
 // 比赛对阵生成服务 - 确保12场对局完全不重复
 
 function generateMatchSchedule(players) {
+  console.log('=== generateMatchSchedule 开始 ===')
+  console.log('输入的选手数量:', players.length)
+
   if (players.length !== 6) {
+    console.log('选手数量不是6，返回失败')
     return {
       success: false,
       message: '需要6名选手才能生成比赛对阵'
@@ -10,6 +14,7 @@ function generateMatchSchedule(players) {
 
   // 生成所有可能的对局（不是组合，而是完整的对局）
   const allMatches = generateAllPossibleMatches(players)
+  console.log('生成的所有可能对局数量:', allMatches.length)
 
   let bestMatches = []
   let bestScore = -1
@@ -21,13 +26,17 @@ function generateMatchSchedule(players) {
     if (result.success && result.score > bestScore) {
       bestScore = result.score
       bestMatches = result.matches
+      console.log(`尝试 ${attempt + 1}: 找到更好的方案，得分 ${bestScore}，对局数 ${bestMatches.length}`)
 
       // 如果找到完美方案，直接使用
       if (result.score >= 95) {
+        console.log('找到完美方案，提前结束')
         break
       }
     }
   }
+
+  console.log('最终结果: 对局数', bestMatches.length, '得分', bestScore)
 
   // 统计并打印组队次数
   console.log('开始统计组队次数...')
@@ -105,8 +114,12 @@ function generateOptimalSchedule(players, allPossibleMatches) {
   const teammateCount = {} // 组队次数统计
   const targetMatches = 12
   const targetGamesPerPlayer = 8
-  const maxConsecutiveGames = 2
+  const maxConsecutiveGames = 3 // 普通选手最多连续3场
+  const maxConsecutiveGamesSpecial = 2 // 特殊选手（大哥）最多连续2场
   const maxTeammateCount = 2 // 最多组队2次
+
+  // 定义特殊选手名单（需要限制连续场次的选手）
+  const specialPlayerNames = ['大哥'] // 可以根据需要添加更多名字
 
   // 初始化选手统计
   players.forEach(player => {
@@ -125,7 +138,9 @@ function generateOptimalSchedule(players, allPossibleMatches) {
   const shuffledMatches = [...allPossibleMatches].sort(() => Math.random() - 0.5)
 
   let attempts = 0
-  const maxAttempts = 1000
+  const maxAttempts = 5000 // 增加尝试次数
+  let backtrackCount = 0
+  const maxBacktrack = 50 // 最大回溯次数
 
   // 生成12场不重复的对局
   while (selectedMatches.length < targetMatches && attempts < maxAttempts) {
@@ -149,9 +164,12 @@ function generateOptimalSchedule(players, allPossibleMatches) {
       }
 
       // 检查连续参赛限制
-      const wouldExceedConsecutive = allPlayers.some(player =>
-        playerConsecutiveGames[player.id] >= maxConsecutiveGames
-      )
+      const wouldExceedConsecutive = allPlayers.some(player => {
+        // 检查该选手是否是特殊选手
+        const isSpecialPlayer = specialPlayerNames.includes(player.name)
+        const maxAllowed = isSpecialPlayer ? maxConsecutiveGamesSpecial : maxConsecutiveGames
+        return playerConsecutiveGames[player.id] >= maxAllowed
+      })
       if (wouldExceedConsecutive) {
         return false
       }
@@ -175,7 +193,8 @@ function generateOptimalSchedule(players, allPossibleMatches) {
 
     if (!availableMatch) {
       // 如果找不到可用对局，回溯
-      if (selectedMatches.length > 0) {
+      if (selectedMatches.length > 0 && backtrackCount < maxBacktrack) {
+        backtrackCount++
         const lastMatch = selectedMatches.pop()
         usedMatchKeys.delete(lastMatch.key)
 
@@ -194,9 +213,15 @@ function generateOptimalSchedule(players, allPossibleMatches) {
 
         // 重新计算连续参赛
         recalculateConsecutiveGames(selectedMatches, players, playerConsecutiveGames)
+      } else {
+        // 无法回溯了或回溯次数过多，这次尝试失败
+        break
       }
       continue
     }
+
+    // 成功找到可用对局，重置回溯计数
+    backtrackCount = 0
 
     // 添加这场对局
     const currentMatchIndex = selectedMatches.length
@@ -323,6 +348,41 @@ function evaluateSchedule(matches, playerGameCount, usedMatchKeys, teammateCount
     }
   }
 
+  // 新增：惩罚连续3场的情况
+  if (matches.length > 0) {
+    const players = new Set()
+    matches.forEach(match => {
+      match.team1.forEach(p => players.add(p))
+      match.team2.forEach(p => players.add(p))
+    })
+
+    let consecutive3Count = 0
+    players.forEach(player => {
+      let currentConsecutive = 0
+      let maxConsecutive = 0
+
+      matches.forEach(match => {
+        const allPlayers = [...match.team1, ...match.team2]
+        const isPlaying = allPlayers.some(p => p.id === player.id)
+
+        if (isPlaying) {
+          currentConsecutive++
+          maxConsecutive = Math.max(maxConsecutive, currentConsecutive)
+        } else {
+          currentConsecutive = 0
+        }
+      })
+
+      // 如果有选手连续3场，扣分
+      if (maxConsecutive >= 3) {
+        consecutive3Count++
+      }
+    })
+
+    // 每个连续3场的选手扣3分
+    score -= consecutive3Count * 3
+  }
+
   return Math.max(0, score)
 }
 
@@ -334,8 +394,14 @@ function printTeammateStats(matches, players) {
 
   // 初始化组队次数统计
   const teammateCount = {}
+  const playerGameCount = {}
+  const playerMaxConsecutive = {}
+
   players.forEach(p1 => {
     teammateCount[p1.id] = {}
+    playerGameCount[p1.id] = 0
+    playerMaxConsecutive[p1.id] = 0
+
     players.forEach(p2 => {
       if (p1.id !== p2.id) {
         teammateCount[p1.id][p2.id] = 0
@@ -343,20 +409,69 @@ function printTeammateStats(matches, players) {
     })
   })
 
-  // 统计每场比赛的组队情况
+  // 统计每场比赛的组队情况和上场次数
   matches.forEach(match => {
     // team1 的两个人是队友
     const [p1, p2] = match.team1
     teammateCount[p1.id][p2.id]++
     teammateCount[p2.id][p1.id]++
+    playerGameCount[p1.id]++
+    playerGameCount[p2.id]++
 
     // team2 的两个人是队友
     const [p3, p4] = match.team2
     teammateCount[p3.id][p4.id]++
     teammateCount[p4.id][p3.id]++
+    playerGameCount[p3.id]++
+    playerGameCount[p4.id]++
   })
 
-  // 打印统计结果
+  // 计算每个人的最大连续上场次数
+  players.forEach(player => {
+    let currentConsecutive = 0
+    let maxConsecutive = 0
+
+    matches.forEach(match => {
+      const allPlayers = [...match.team1, ...match.team2]
+      const isPlaying = allPlayers.some(p => p.id === player.id)
+
+      if (isPlaying) {
+        currentConsecutive++
+        maxConsecutive = Math.max(maxConsecutive, currentConsecutive)
+      } else {
+        currentConsecutive = 0
+      }
+    })
+
+    playerMaxConsecutive[player.id] = maxConsecutive
+  })
+
+  // 打印上场次数统计
+  console.log('\n========== 上场次数统计 ==========')
+  const specialPlayerNames = ['大哥']
+  let consecutive3Players = []
+
+  players.forEach(player => {
+    const isSpecial = specialPlayerNames.includes(player.name)
+    const limit = isSpecial ? '(限制:最多连续2场)' : '(限制:最多连续3场)'
+    const maxConsec = playerMaxConsecutive[player.id]
+
+    let warning = ''
+    if (maxConsec >= 3) {
+      warning = ' ⚠️ 连续3场'
+      consecutive3Players.push(player.name)
+    }
+
+    console.log(`${player.name}: 上场 ${playerGameCount[player.id]} 次，最大连续上场 ${maxConsec} 次 ${limit}${warning}`)
+  })
+
+  if (consecutive3Players.length > 0) {
+    console.log(`\n注意：${consecutive3Players.join('、')} 出现了连续3场的情况`)
+  }
+
+  console.log('==================================')
+
+  // 打印组队次数统计
   console.log('\n========== 组队次数统计 ==========')
   players.forEach(player => {
     console.log(`\n${player.name} 的组队情况：`)
