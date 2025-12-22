@@ -45,8 +45,10 @@ router.post('/:matchId/generate-games', async (req, res, next) => {
     await Game.destroy({ where: { matchId } })
 
     // 生成新的比赛对阵
+    console.log('准备生成比赛对阵，选手数量:', players.length)
     const schedule = generateMatchSchedule(players)
-    
+    console.log('对阵生成完成，结果:', schedule.success)
+
     if (!schedule.success) {
       return res.status(400).json({
         success: false,
@@ -128,7 +130,7 @@ router.put('/:matchId/games/:gameId/score', async (req, res, next) => {
 
     // 验证比分
     if (typeof score1 !== 'number' || typeof score2 !== 'number' ||
-        score1 < 0 || score2 < 0 || score1 > 30 || score2 > 30) {
+      score1 < 0 || score2 < 0 || score1 > 30 || score2 > 30) {
       return res.status(400).json({
         success: false,
         error: { message: '比分必须是0-30之间的数字' }
@@ -152,7 +154,7 @@ router.put('/:matchId/games/:gameId/score', async (req, res, next) => {
     // 确定胜负
     let winner = null
     let status = 'pending'
-    
+
     if (score1 > 0 || score2 > 0) {
       status = 'finished'
       if (score1 > score2) {
@@ -204,7 +206,7 @@ router.delete('/:matchId/games', async (req, res, next) => {
 
     // 删除所有比赛对阵
     await Game.destroy({ where: { matchId } })
-    
+
     // 删除所有选手统计
     await PlayerStat.destroy({ where: { matchId } })
 
@@ -232,12 +234,12 @@ router.get('/:matchId/results', async (req, res, next) => {
 
     // 去重处理 - 确保每个选手只出现一次
     const uniqueResults = new Map()
-    
+
     results.forEach(stat => {
       const playerId = stat.playerId
-      if (!uniqueResults.has(playerId) || 
-          uniqueResults.get(playerId).wins < stat.wins ||
-          (uniqueResults.get(playerId).wins === stat.wins && uniqueResults.get(playerId).scoreDiff < stat.scoreDiff)) {
+      if (!uniqueResults.has(playerId) ||
+        uniqueResults.get(playerId).wins < stat.wins ||
+        (uniqueResults.get(playerId).wins === stat.wins && uniqueResults.get(playerId).scoreDiff < stat.scoreDiff)) {
         uniqueResults.set(playerId, stat)
       }
     })
