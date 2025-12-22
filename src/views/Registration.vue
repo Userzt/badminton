@@ -1,5 +1,12 @@
 <template>
   <div class="registration">
+    <!-- 密码验证模态框 -->
+    <PasswordModal
+      v-model:open="showPasswordModal"
+      @success="handlePasswordSuccess"
+      @cancel="handlePasswordCancel"
+    />
+    
     <!-- 测试基本显示 -->
     <div style="padding: 20px; background: white; margin: 10px; border-radius: 8px;">
       <h2>羽毛球比赛报名</h2>
@@ -80,19 +87,25 @@
 </template>
 
 <script>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { store } from '@/store'
 import { message } from 'ant-design-vue'
+import PasswordModal from '@/components/PasswordModal.vue'
 
 export default {
   name: 'Registration',
+  components: {
+    PasswordModal
+  },
   setup() {
     const router = useRouter()
     const newPlayerName = ref('')
     const adding = ref(false)
     const generating = ref(false)
     const newRoundLoading = ref(false)
+    const showPasswordModal = ref(false)
+    const pendingAction = ref(null) // 存储待执行的操作
     
     // 刷新数据
     const refreshData = async () => {
@@ -149,6 +162,18 @@ export default {
     }
     
     const removePlayer = async (playerId) => {
+      // 如果已经生成了对局，需要密码验证
+      if (store.matches.length > 0) {
+        pendingAction.value = { type: 'removePlayer', playerId }
+        showPasswordModal.value = true
+        return
+      }
+      
+      // 没有生成对局，直接删除
+      await executeRemovePlayer(playerId)
+    }
+    
+    const executeRemovePlayer = async (playerId) => {
       try {
         const result = await store.removePlayer(playerId)
         
@@ -226,6 +251,18 @@ export default {
     }
     
     const startNewRound = async () => {
+      // 如果已经生成了对局，需要密码验证
+      if (store.matches.length > 0) {
+        pendingAction.value = { type: 'startNewRound' }
+        showPasswordModal.value = true
+        return
+      }
+      
+      // 没有生成对局，直接执行
+      await executeStartNewRound()
+    }
+    
+    const executeStartNewRound = async () => {
       try {
         // 显示确认对话框
         const { Modal } = await import('ant-design-vue')
@@ -257,17 +294,37 @@ export default {
       }
     }
     
+    const handlePasswordSuccess = () => {
+      // 密码验证成功，执行待处理的操作
+      if (pendingAction.value) {
+        if (pendingAction.value.type === 'removePlayer') {
+          executeRemovePlayer(pendingAction.value.playerId)
+        } else if (pendingAction.value.type === 'startNewRound') {
+          executeStartNewRound()
+        }
+        pendingAction.value = null
+      }
+    }
+    
+    const handlePasswordCancel = () => {
+      // 取消密码验证
+      pendingAction.value = null
+    }
+    
     return {
       store,
       newPlayerName,
       adding,
       generating,
       newRoundLoading,
+      showPasswordModal,
       addPlayer,
       removePlayer,
       startMatch,
       goToScoring,
-      startNewRound
+      startNewRound,
+      handlePasswordSuccess,
+      handlePasswordCancel
     }
   }
 }
