@@ -39,6 +39,31 @@ export const store = reactive({
   // 比赛结果
   results: [],
 
+  // 从 localStorage 加载统计信息
+  loadMatchStatsFromLocal() {
+    try {
+      const saved = localStorage.getItem('matchStats')
+      if (saved) {
+        this.matchStats = JSON.parse(saved)
+        console.log('从 localStorage 加载统计信息')
+      }
+    } catch (error) {
+      console.error('加载统计信息失败:', error)
+    }
+  },
+
+  // 保存统计信息到 localStorage
+  saveMatchStatsToLocal() {
+    try {
+      if (this.matchStats) {
+        localStorage.setItem('matchStats', JSON.stringify(this.matchStats))
+        console.log('统计信息已保存到 localStorage')
+      }
+    } catch (error) {
+      console.error('保存统计信息失败:', error)
+    }
+  },
+
   // 当前比赛进度
   currentMatchIndex: 0,
 
@@ -55,6 +80,9 @@ export const store = reactive({
   // 初始化数据
   async init() {
     try {
+      // 先加载本地统计信息
+      this.loadMatchStatsFromLocal()
+
       await this.loadCurrentMatch()
       if (this.currentMatchId) {
         await this.loadPlayers()
@@ -166,7 +194,11 @@ export const store = reactive({
         })
       }
 
-      // 5. 重新加载数据
+      // 5. 清空统计信息（新比赛需要重新生成）
+      this.matchStats = null
+      localStorage.removeItem('matchStats')
+
+      // 6. 重新加载数据
       await this.loadPlayers()
       await this.loadMatches()
 
@@ -345,6 +377,7 @@ export const store = reactive({
         // 保存统计信息
         if (response.data && response.data.stats && response.data.stats.matchStats) {
           this.matchStats = response.data.stats.matchStats
+          this.saveMatchStatsToLocal() // 保存到 localStorage
         }
         await this.loadMatches() // 重新加载比赛数据
         this.currentMatchIndex = 0
