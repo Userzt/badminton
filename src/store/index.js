@@ -12,6 +12,15 @@ function getCurrentTimeString() {
   return `${month}月${day}日 周${weekday} (2小时21:00-23:00)`
 }
 
+// 获取当前日期的格式化字符串（用于发布日期）
+function getCurrentDateString() {
+  const now = new Date()
+  const month = now.getMonth() + 1
+  const day = now.getDate()
+
+  return `${month}-${day}发布`
+}
+
 // 全局状态管理
 export const store = reactive({
   // 当前比赛ID
@@ -23,7 +32,7 @@ export const store = reactive({
   // 比赛信息
   matchInfo: {
     title: '6人多人轮转赛',
-    date: '12-13发布',
+    date: getCurrentDateString(),
     time: getCurrentTimeString(),
     location: '钱塘区·钱塘文体中心',
     organizer: 'cy',
@@ -140,7 +149,7 @@ export const store = reactive({
     try {
       const matchData = {
         title: '6人多人轮转赛',
-        date: '12-13发布',
+        date: getCurrentDateString(),
         time: getCurrentTimeString(),
         location: '钱塘区·钱塘文体中心',
         organizer: 'cy',
@@ -170,7 +179,7 @@ export const store = reactive({
       // 2. 直接创建新比赛（不清空当前比赛数据，保留历史记录）
       const matchData = {
         title: '6人多人轮转赛',
-        date: '12-13发布',
+        date: getCurrentDateString(),
         time: getCurrentTimeString(),
         location: '钱塘区·钱塘文体中心',
         organizer: 'cy',
