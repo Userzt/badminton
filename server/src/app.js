@@ -14,27 +14,7 @@ const { seedTestData } = require('../scripts/seedData')
 const app = express()
 const PORT = process.env.PORT || 3002
 
-// 中间件
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrcAttr: ["'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:"],
-      connectSrc: ["'self'"],
-      fontSrc: ["'self'"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-    },
-  },
-}))
-app.use(compression())
-app.use(morgan('combined'))
-
-// CORS 配置 - 允许所有来源
+// 中间件 - CORS 必须在最前面
 app.use(cors({
   origin: true, // 允许所有来源
   credentials: true,
@@ -43,6 +23,13 @@ app.use(cors({
   exposedHeaders: ['Content-Length', 'Content-Type'],
   maxAge: 86400
 }))
+
+app.use(helmet({
+  crossOriginResourcePolicy: false,
+  contentSecurityPolicy: false
+}))
+app.use(compression())
+app.use(morgan('combined'))
 
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: true }))
@@ -71,6 +58,9 @@ app.post('/seed-data', async (req, res) => {
 app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() })
 })
+
+// 处理所有 OPTIONS 预检请求
+app.options('*', cors())
 
 // API 路由
 app.use('/api', routes)
