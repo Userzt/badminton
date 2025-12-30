@@ -39,7 +39,7 @@ app.use(cors({
       'http://localhost:3000',
       'http://localhost:3001',
       'http://localhost:3003',
-      'https://ztdea.asia',
+      'https://ztidea.asia',
       process.env.CORS_ORIGIN
     ].filter(Boolean)
 
