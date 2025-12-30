@@ -61,24 +61,21 @@ router.post('/:matchId/generate-games', async (req, res, next) => {
       })
     }
 
-    // 保存比赛对阵到数据库
-    const games = []
-    for (let i = 0; i < schedule.matches.length; i++) {
-      const match = schedule.matches[i]
-      const game = await Game.create({
-        matchId,
-        roundNumber: i + 1,
-        roundName: `第${i + 1}场`,
-        team1Player1Id: match.team1[0].id,
-        team1Player2Id: match.team1[1].id,
-        team2Player1Id: match.team2[0].id,
-        team2Player2Id: match.team2[1].id,
-        score1: 0,
-        score2: 0,
-        status: 'pending'
-      })
-      games.push(game)
-    }
+    // 优化：使用批量插入代替逐条插入
+    const gamesData = schedule.matches.map((match, i) => ({
+      matchId,
+      roundNumber: i + 1,
+      roundName: `第${i + 1}场`,
+      team1Player1Id: match.team1[0].id,
+      team1Player2Id: match.team1[1].id,
+      team2Player1Id: match.team2[0].id,
+      team2Player2Id: match.team2[1].id,
+      score1: 0,
+      score2: 0,
+      status: 'pending'
+    }))
+
+    const games = await Game.bulkCreate(gamesData)
 
     res.json({
       success: true,

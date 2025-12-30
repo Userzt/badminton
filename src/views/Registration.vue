@@ -88,13 +88,6 @@
             🔄 再来一场
           </a-button>
         </div>
-        
-        <!-- 对局详情按钮 -->
-        <div v-if="store.matches.length > 0" style="margin-top: 16px;">
-          <a-button type="default" size="large" block @click="showStatsModal = true">
-            📊 对局详情
-          </a-button>
-        </div>
       </a-card>
     </div>
   </div>

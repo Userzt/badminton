@@ -1,11 +1,7 @@
 // 比赛对阵生成服务 - 确保12场对局完全不重复
 
 function generateMatchSchedule(players) {
-  console.log('=== generateMatchSchedule 开始 ===')
-  console.log('输入的选手数量:', players.length)
-
   if (players.length !== 6) {
-    console.log('选手数量不是6，返回失败')
     return {
       success: false,
       message: '需要6名选手才能生成比赛对阵'
@@ -14,38 +10,39 @@ function generateMatchSchedule(players) {
 
   // 生成所有可能的对局（不是组合，而是完整的对局）
   const allMatches = generateAllPossibleMatches(players)
-  console.log('生成的所有可能对局数量:', allMatches.length)
 
   let bestMatches = []
   let bestScore = -1
 
-  // 尝试多次生成最优方案
-  for (let attempt = 0; attempt < 200; attempt++) {
+  // 优化：减少尝试次数，找到可接受的方案就停止
+  const maxAttempts = 50 // 从200减少到50
+  const acceptableScore = 90 // 从95降低到90，更容易满足
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const result = generateOptimalSchedule(players, allMatches)
 
     if (result.success && result.score > bestScore) {
       bestScore = result.score
       bestMatches = result.matches
-      console.log(`尝试 ${attempt + 1}: 找到更好的方案，得分 ${bestScore}，对局数 ${bestMatches.length}`)
 
-      // 如果找到完美方案，直接使用
-      if (result.score >= 95) {
-        console.log('找到完美方案，提前结束')
+      // 如果找到可接受的方案，直接使用
+      if (result.score >= acceptableScore) {
         break
       }
     }
+
+    // 如果前10次尝试就找到了12场比赛的方案，且得分不错，可以提前结束
+    if (attempt >= 10 && bestMatches.length === 12 && bestScore >= 80) {
+      break
+    }
   }
 
-  console.log('最终结果: 对局数', bestMatches.length, '得分', bestScore)
-
-  // 统计并打印组队次数
-  console.log('开始统计组队次数...')
+  // 统计组队次数
   let matchStats = null
   if (bestMatches.length > 0) {
-    console.log(`成功生成 ${bestMatches.length} 场对局`)
     matchStats = printTeammateStats(bestMatches, players)
   } else {
-    console.log('未能生成对局')
+    // 未能生成对局
   }
 
   return {
@@ -140,9 +137,13 @@ function generateOptimalSchedule(players, allPossibleMatches) {
   const shuffledMatches = [...allPossibleMatches].sort(() => Math.random() - 0.5)
 
   let attempts = 0
-  const maxAttempts = 5000 // 增加尝试次数
+  const maxAttempts = 2000 // 从5000减少到2000
   let backtrackCount = 0
-  const maxBacktrack = 50 // 最大回溯次数
+  const maxBacktrack = 30 // 从50减少到30
+
+  // 优化：添加快速失败机制
+  let consecutiveFailures = 0
+  const maxConsecutiveFailures = 100
 
   // 生成12场不重复的对局
   while (selectedMatches.length < targetMatches && attempts < maxAttempts) {
@@ -194,6 +195,13 @@ function generateOptimalSchedule(players, allPossibleMatches) {
     })
 
     if (!availableMatch) {
+      consecutiveFailures++
+
+      // 优化：如果连续失败太多次，提前放弃
+      if (consecutiveFailures >= maxConsecutiveFailures) {
+        break
+      }
+
       // 如果找不到可用对局，回溯
       if (selectedMatches.length > 0 && backtrackCount < maxBacktrack) {
         backtrackCount++
@@ -222,8 +230,9 @@ function generateOptimalSchedule(players, allPossibleMatches) {
       continue
     }
 
-    // 成功找到可用对局，重置回溯计数
+    // 成功找到可用对局，重置计数器
     backtrackCount = 0
+    consecutiveFailures = 0
 
     // 添加这场对局
     const currentMatchIndex = selectedMatches.length
@@ -390,10 +399,6 @@ function evaluateSchedule(matches, playerGameCount, usedMatchKeys, teammateCount
 
 // 统计并打印组队次数
 function printTeammateStats(matches, players) {
-  console.log('printTeammateStats 函数被调用')
-  console.log(`matches 数量: ${matches.length}`)
-  console.log(`players 数量: ${players.length}`)
-
   // 初始化组队次数统计
   const teammateCount = {}
   const playerGameCount = {}
@@ -448,43 +453,7 @@ function printTeammateStats(matches, players) {
     playerMaxConsecutive[player.id] = maxConsecutive
   })
 
-  // 打印上场次数统计
-  console.log('\n========== 上场次数统计 ==========')
-  const specialPlayerNames = ['大哥']
-  let consecutive3Players = []
-
-  players.forEach(player => {
-    const isSpecial = specialPlayerNames.includes(player.name)
-    const limit = isSpecial ? '(限制:最多连续2场)' : '(限制:最多连续3场)'
-    const maxConsec = playerMaxConsecutive[player.id]
-
-    let warning = ''
-    if (maxConsec >= 3) {
-      warning = ' ⚠️ 连续3场'
-      consecutive3Players.push(player.name)
-    }
-
-    console.log(`${player.name}: 上场 ${playerGameCount[player.id]} 次，最大连续上场 ${maxConsec} 次 ${limit}${warning}`)
-  })
-
-  if (consecutive3Players.length > 0) {
-    console.log(`\n注意：${consecutive3Players.join('、')} 出现了连续3场的情况`)
-  }
-
-  console.log('==================================')
-
-  // 打印组队次数统计
-  console.log('\n========== 组队次数统计 ==========')
-  players.forEach(player => {
-    console.log(`\n${player.name} 的组队情况：`)
-    players.forEach(teammate => {
-      if (player.id !== teammate.id) {
-        const count = teammateCount[player.id][teammate.id]
-        console.log(`  与 ${teammate.name} 组队: ${count} 次`)
-      }
-    })
-  })
-  console.log('\n==================================\n')
+  // 不再打印详细日志，只返回统计数据
 
   // 返回统计数据供 API 使用
   return {
